@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Editor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Canvas Editor</h1>
+    <div class="toolbar">
+        <label for="objectCategory">Add:</label>
+        <select id="objectCategory">
+            <option value="panel">Panel</option>
+            <option value="junction_box">Junction Box</option>
+            <option value="lamp">Lampu</option>
+            <option value="switch">Sakelar</option>
+            <option value="circuit_breaker">Circuit Breaker</option>
+        </select>
+        <button id="addObjectBtn">Add Object</button>
+        <button id="connectObjects">Connect Objects</button>
+    </div>
+    <div class="main-container">
+        <div class="properties-panel">
+            <h2>Properties</h2>
+            <div id="properties-content">
+                <p>Select an item to see its properties.</p>
+            </div>
+        </div>
+        <canvas id="canvas" width="800" height="600"></canvas>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
