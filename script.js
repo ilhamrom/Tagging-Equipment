@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isMovingCableEnd = false;
     let movingCableInfo = null;
 
-    // Viewport state: pan is in screen-space units
+    // Viewport state
+    let zoom = 1;
     let panX = 0;
     let panY = 0;
     let isPanning = false;
@@ -52,21 +53,21 @@ document.addEventListener('DOMContentLoaded', () => {
             context.textBaseline = 'middle';
             const centerX = this.x + this.width / 2;
             const centerY = this.y + this.height / 2;
-            context.lineWidth = 1;
+            context.lineWidth = 1 / zoom;
             switch (this.category) {
                 case 'panel': context.fillStyle = '#E0E0E0'; context.fillRect(this.x, this.y, this.width, this.height); context.strokeStyle = 'black'; context.strokeRect(this.x, this.y, this.width, this.height); break;
-                case 'junction_box': context.fillStyle = '#D2B48C'; context.fillRect(this.x, this.y, this.width, this.height); context.fillStyle = 'black'; context.font = `20px sans-serif`; context.fillText('J', centerX, centerY); break;
+                case 'junction_box': context.fillStyle = '#D2B48C'; context.fillRect(this.x, this.y, this.width, this.height); context.fillStyle = 'black'; context.font = `${20 / zoom}px sans-serif`; context.fillText('J', centerX, centerY); break;
                 case 'lamp': context.fillStyle = '#FFEB3B'; context.beginPath(); context.arc(centerX, centerY, this.width / 2, 0, Math.PI * 2); context.fill(); break;
                 case 'switch': context.fillStyle = '#BDBDBD'; context.beginPath(); context.arc(centerX, centerY, this.width / 2, 0, Math.PI * 2); context.fill(); context.beginPath(); context.moveTo(this.x + 5, this.y + 5); context.lineTo(this.x + this.width - 5, this.y + this.height - 5); context.strokeStyle = 'black'; context.stroke(); break;
                 case 'circuit_breaker': context.fillStyle = '#616161'; context.fillRect(this.x, this.y, this.width, this.height); context.fillStyle = '#FF5722'; context.fillRect(this.x + 10, this.y + 10, 10, 5); break;
                 default: context.fillStyle = 'lightblue'; context.fillRect(this.x, this.y, this.width, this.height); break;
             }
             context.fillStyle = 'black';
-            context.font = `12px sans-serif`;
-            context.fillText(this.tag, centerX, this.y + this.height + 10);
+            context.font = `${12 / zoom}px sans-serif`;
+            context.fillText(this.tag, centerX, this.y + this.height + (10 / zoom));
             this.nodes.forEach((node, index) => {
                 context.beginPath();
-                context.arc(this.x + node.x, this.y + node.y, 5, 0, 2 * Math.PI);
+                context.arc(this.x + node.x, this.y + node.y, 5 / zoom, 0, 2 * Math.PI);
                 if (hoveredNodeInfo && hoveredNodeInfo.obj === this && hoveredNodeInfo.nodeIndex === index) {
                     context.fillStyle = 'cyan';
                 } else {
@@ -81,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const node = this.nodes[i];
                 const dx = (this.x + node.x) - pos.x;
                 const dy = (this.y + node.y) - pos.y;
-                if (dx * dx + dy * dy < 10 * 10) { return i; }
+                if (dx * dx + dy * dy < (10 / zoom) * (10 / zoom)) { return i; }
             }
             return null;
         }
@@ -115,49 +116,75 @@ document.addEventListener('DOMContentLoaded', () => {
             context.lineTo(end.x, end.y);
             const isSelected = selectedItem === this;
             context.strokeStyle = isSelected ? 'red' : 'black';
-            context.lineWidth = isSelected ? 2 : 1;
+            context.lineWidth = (isSelected ? 2 : 1) / zoom;
             context.stroke();
             if (isSelected) {
                 context.beginPath();
-                context.arc(start.x, start.y, 8, 0, 2 * Math.PI);
+                context.arc(start.x, start.y, 8 / zoom, 0, 2 * Math.PI);
                 context.fillStyle = 'rgba(0, 255, 255, 0.5)';
                 context.fill();
                 context.beginPath();
-                context.arc(end.x, end.y, 8, 0, 2 * Math.PI);
+                context.arc(end.x, end.y, 8 / zoom, 0, 2 * Math.PI);
                 context.fill();
             }
             const midX = (start.x + end.x) / 2;
             const midY = (start.y + end.y) / 2;
-            const textOffset = -15;
-            context.font = `12px sans-serif`;
+            const textOffset = -15 / zoom;
+            context.font = `${12 / zoom}px sans-serif`;
             context.textAlign = 'center';
             context.textBaseline = 'bottom';
             const textMetrics = context.measureText(this.tag);
             const textWidth = textMetrics.width;
-            const textHeight = 12;
+            const textHeight = 12 / zoom;
             context.fillStyle = 'white';
-            const bgX = midX - textWidth / 2 - 4;
-            const bgY = midY + textOffset - textHeight - 4;
-            context.fillRect(bgX, bgY, textWidth + 8, textHeight + 8);
+            const bgX = midX - textWidth / 2 - (4 / zoom);
+            const bgY = midY + textOffset - textHeight - (4 / zoom);
+            context.fillRect(bgX, bgY, textWidth + (8 / zoom), textHeight + (8 / zoom));
             context.strokeStyle = '#CCCCCC';
-            context.lineWidth = 1;
-            context.strokeRect(bgX, bgY, textWidth + 8, textHeight + 8);
+            context.lineWidth = 1 / zoom;
+            context.strokeRect(bgX, bgY, textWidth + (8 / zoom), textHeight + (8 / zoom));
             context.fillStyle = 'red';
             context.fillText(this.tag, midX, midY + textOffset);
             context.restore();
         }
         getHandleAt(pos) {
             const { start, end } = this.getEndPoints();
-            if (Math.hypot(pos.x - start.x, pos.y - start.y) < 10) return 'start';
-            if (Math.hypot(pos.x - end.x, pos.y - end.y) < 10) return 'end';
+            if (Math.hypot(pos.x - start.x, pos.y - start.y) < 10 / zoom) return 'start';
+            if (Math.hypot(pos.x - end.x, pos.y - end.y) < 10 / zoom) return 'end';
             return null;
         }
         isClicked(mouseX, mouseY) {
             if (this.getHandleAt({x: mouseX, y: mouseY})) return false;
             const { start, end } = this.getEndPoints();
             const dist = Math.abs((end.y - start.y) * mouseX - (end.x - start.x) * mouseY + end.x * start.y - end.y * start.x) / Math.sqrt(Math.pow(end.y - start.y, 2) + Math.pow(end.x - start.x, 2));
-            return dist < 5;
+            return dist < 5 / zoom;
         }
+    }
+
+    function drawGrid() {
+        const gridSize = 20;
+        ctx.save();
+        ctx.strokeStyle = '#E0E0E0';
+        ctx.lineWidth = 1 / zoom;
+        const x1 = (0 - panX) / zoom;
+        const y1 = (0 - panY) / zoom;
+        const x2 = (canvas.width - panX) / zoom;
+        const y2 = (canvas.height - panY) / zoom;
+        const startX = Math.floor(x1 / gridSize) * gridSize;
+        const startY = Math.floor(y1 / gridSize) * gridSize;
+        for (let x = startX; x < x2; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, y1);
+            ctx.lineTo(x, y2);
+            ctx.stroke();
+        }
+        for (let y = startY; y < y2; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y);
+            ctx.lineTo(x2, y);
+            ctx.stroke();
+        }
+        ctx.restore();
     }
 
     function redrawCanvas() {
@@ -165,11 +192,13 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.translate(panX, panY);
+        ctx.scale(zoom, zoom);
         
+        drawGrid();
         cables.forEach(cable => cable.draw(ctx));
         objects.forEach(obj => obj.draw(ctx));
 
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1 / zoom;
         if (isDrawingCable && cableStart) {
             const startNode = cableStart.obj.nodes[cableStart.nodeIndex];
             const startPos = { x: cableStart.obj.x + startNode.x, y: cableStart.obj.y + startNode.y };
@@ -188,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (selectedItem && selectedItem instanceof CanvasObject) {
             ctx.strokeStyle = 'red';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2 / zoom;
             ctx.strokeRect(selectedItem.x, selectedItem.y, selectedItem.width, selectedItem.height);
         }
         ctx.restore();
@@ -222,20 +251,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
         const scaleY = canvas.height / rect.height;
-
         const screenX = (evt.clientX - rect.left) * scaleX;
         const screenY = (evt.clientY - rect.top) * scaleY;
-
         return {
-            x: screenX - panX,
-            y: screenY - panY
+            x: (screenX - panX) / zoom,
+            y: (screenY - panY) / zoom
         };
     }
 
     addObjectBtn.addEventListener('click', () => {
         const category = objectCategorySelect.value;
-        const worldX = (canvas.width / 2) - panX;
-        const worldY = (canvas.height / 2) - panY;
+        const worldX = (canvas.width / 2 - panX) / zoom;
+        const worldY = (canvas.height / 2 - panY) / zoom;
         objects.push(new CanvasObject(worldX, worldY, category));
         redrawCanvas();
     });
@@ -356,6 +383,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         isDragging = false;
         hoveredNodeInfo = null;
+        redrawCanvas();
+    });
+
+    canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const screenX = (e.clientX - rect.left) * scaleX;
+        const screenY = (e.clientY - rect.top) * scaleY;
+
+        const zoomAmount = 0.1;
+        const zoomDirection = e.deltaY < 0 ? 1 : -1;
+        const oldZoom = zoom;
+        
+        zoom *= 1 + zoomDirection * zoomAmount;
+        zoom = Math.max(0.1, Math.min(5, zoom));
+
+        panX = screenX - (screenX - panX) * (zoom / oldZoom);
+        panY = screenY - (screenY - panY) * (zoom / oldZoom);
+
         redrawCanvas();
     });
 
