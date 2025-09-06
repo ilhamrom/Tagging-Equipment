@@ -1,0 +1,48 @@
+body {
+    font-family: sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* Stretch items to fill width */
+}
+
+h1 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.toolbar {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.main-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    width: 100%;
+}
+
+.properties-panel {
+    width: 250px; /* Fixed width for the sidebar */
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
+    padding: 20px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    box-sizing: border-box;
+}
+
+canvas {
+    flex-grow: 1; /* Allow canvas to grow and fill space */
+    border: 1px solid #ccc;
+    background-color: #fff;
+    cursor: crosshair;
+    /* The width and height attributes on the canvas tag determine its resolution,
+       CSS determines its display size. Let's make it responsive. */
+    width: 100%; 
+    height: auto;
+}
