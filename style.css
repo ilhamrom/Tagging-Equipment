@@ -1,48 +1,56 @@
-body {
+/* Basic Reset and Box Sizing */
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
     font-family: sans-serif;
     background-color: #f0f0f0;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch; /* Stretch items to fill width */
+    display: flex; /* Use flexbox on body */
+    flex-direction: column; /* Stack children vertically */
+    overflow: hidden; /* Prevent body from scrolling */
 }
 
 h1 {
-    margin-top: 0;
+    margin: 10px;
     text-align: center;
+    flex-shrink: 0; /* Prevent h1 from shrinking */
 }
 
 .toolbar {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     display: flex;
     justify-content: center;
     gap: 10px;
+    flex-shrink: 0; /* Prevent toolbar from shrinking */
+    padding: 0 10px;
 }
 
 .main-container {
     display: flex;
     flex-direction: row;
-    gap: 20px;
-    width: 100%;
+    gap: 10px;
+    padding: 0 10px 10px 10px; /* Add padding here instead of body */
+    flex-grow: 1; /* Make this container grow to fill available space */
+    min-height: 0; /* Important for flex-grow in a flex column */
 }
 
 .properties-panel {
-    width: 250px; /* Fixed width for the sidebar */
-    flex-shrink: 0; /* Prevent sidebar from shrinking */
-    padding: 20px;
+    width: 250px;
+    flex-shrink: 0;
+    padding: 10px;
     border: 1px solid #ccc;
     background-color: #fff;
-    box-sizing: border-box;
+    overflow-y: auto; /* Allow properties panel to scroll if content is too long */
 }
 
 canvas {
-    flex-grow: 1; /* Allow canvas to grow and fill space */
+    flex-grow: 1;
     border: 1px solid #ccc;
     background-color: #fff;
     cursor: crosshair;
-    /* The width and height attributes on the canvas tag determine its resolution,
-       CSS determines its display size. Let's make it responsive. */
-    width: 100%; 
-    height: auto;
+    width: 100%; /* Take up all horizontal space in its container */
+    height: 100%; /* Take up all vertical space in its container */
 }

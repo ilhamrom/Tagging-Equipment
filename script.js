@@ -268,7 +268,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     canvas.addEventListener('mousedown', (e) => {
-        if (spacebarDown) {
+        if (spacebarDown || e.button === 1) { // 1 is middle mouse button
+            e.preventDefault();
             isPanning = true;
             panStart.x = e.clientX;
             panStart.y = e.clientY;
@@ -426,5 +427,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     canvas.style.cursor = 'crosshair';
-    redrawCanvas();
+
+    function resizeCanvas() {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        redrawCanvas();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Initial resize and draw
+    resizeCanvas();
 });
