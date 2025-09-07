@@ -461,6 +461,145 @@ document.addEventListener('DOMContentLoaded', () => {
         downloadCSV('cables.csv', rows);
     });
 
+    // Project Management Logic
+    const newProjectBtn = document.getElementById('newProjectBtn');
+
+    function resetState() {
+        state.objects = [];
+        state.cables = [];
+        state.selectedItem = null;
+        state.zoom = 1;
+        state.panX = 0;
+        state.panY = 0;
+        state.sequenceCounter = 1;
+        // Clear properties panel and tables
+        updatePropertiesPanel();
+        updatePreviewTables();
+        // Redraw the empty canvas
+        redrawCanvas();
+    }
+
+    newProjectBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to start a new project? Any unsaved changes will be lost.')) {
+            resetState();
+        }
+    });
+
+    const saveProjectBtn = document.getElementById('saveProjectBtn');
+
+    function getSerializableState() {
+        // Create plain objects for serialization
+        const serializableObjects = state.objects.map(obj => ({
+            id: obj.id,
+            x: obj.x,
+            y: obj.y,
+            category: obj.category,
+            tag: obj.tag,
+            width: obj.width,
+            height: obj.height,
+            nodes: obj.nodes
+        }));
+
+        const serializableCables = state.cables.map(cable => ({
+            id: cable.id,
+            startObjId: cable.startObj.id,
+            startNodeIndex: cable.startNodeIndex,
+            endObjId: cable.endObj.id,
+            endNodeIndex: cable.endNodeIndex,
+            tag: cable.tag
+        }));
+
+        return {
+            objects: serializableObjects,
+            cables: serializableCables,
+            sequenceCounter: state.sequenceCounter
+        };
+    }
+
+    saveProjectBtn.addEventListener('click', () => {
+        try {
+            const projectData = getSerializableState();
+            const jsonString = JSON.stringify(projectData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `project-${Date.now()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Error saving project:", error);
+            alert("Could not save project. See console for details.");
+        }
+    });
+
+    const openProjectBtn = document.getElementById('openProjectBtn');
+    const fileInput = document.getElementById('fileInput');
+
+    openProjectBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const projectData = JSON.parse(e.target.result);
+                if (projectData && projectData.objects && projectData.cables) {
+                    loadState(projectData);
+                } else {
+                    throw new Error("Invalid project file format.");
+                }
+            } catch (error) {
+                console.error("Error opening project file:", error);
+                alert("Could not open project file. It may be corrupted or not a valid project file.");
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = null;
+    });
+
+    function loadState(projectData) {
+        // Reset the state without confirmation
+        state.objects = [];
+        state.cables = [];
+        state.selectedItem = null;
+        state.zoom = 1;
+        state.panX = 0;
+        state.panY = 0;
+
+        const objectMap = new Map();
+
+        projectData.objects.forEach(objData => {
+            const newObj = new CanvasObject(objData.x, objData.y, objData.category, 0);
+            Object.assign(newObj, objData); // Assign all saved properties
+            state.objects.push(newObj);
+            objectMap.set(newObj.id, newObj);
+        });
+
+        projectData.cables.forEach(cableData => {
+            const startObj = objectMap.get(cableData.startObjId);
+            const endObj = objectMap.get(cableData.endObjId);
+
+            if (startObj && endObj) {
+                const newCable = new Cable(startObj, cableData.startNodeIndex, endObj, cableData.endNodeIndex, 0);
+                Object.assign(newCable, { id: cableData.id, tag: cableData.tag });
+                state.cables.push(newCable);
+            }
+        });
+
+        state.sequenceCounter = projectData.sequenceCounter || 1;
+
+        updatePropertiesPanel();
+        updatePreviewTables();
+        redrawCanvas();
+    }
+
     resizeCanvas();
     updatePreviewTables();
 });
