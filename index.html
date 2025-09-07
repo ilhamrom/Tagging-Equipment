@@ -10,7 +10,15 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Canvas Editor</h1>
+    <div class="main-header">
+        <h1>Canvas Editor</h1>
+        <div class="project-controls">
+            <button id="newProjectBtn" class="header-btn">New</button>
+            <button id="openProjectBtn" class="header-btn">Open</button>
+            <button id="saveProjectBtn" class="header-btn">Save</button>
+        </div>
+    </div>
+    <input type="file" id="fileInput" accept=".json" style="display: none;" />
     <div class="app-container">
         <div class="left-sidebar">
             <div class="add-object-panel">
