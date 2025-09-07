@@ -154,20 +154,24 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteBtn.id = 'deleteItem';
         deleteBtn.textContent = 'Delete Item';
         deleteBtn.style.marginTop = '10px';
-        deleteBtn.addEventListener('click', () => {
-            if (!state.selectedItem) return;
-            if (state.selectedItem instanceof CanvasObject) {
-                state.objects = state.objects.filter(obj => obj.id !== state.selectedItem.id);
-                state.cables = state.cables.filter(c => c.startObj.id !== state.selectedItem.id && c.endObj.id !== state.selectedItem.id);
-            } else if (state.selectedItem instanceof Cable) {
-                state.cables = state.cables.filter(c => c.id !== state.selectedItem.id);
-            }
-            state.selectedItem = null;
-            updatePropertiesPanel();
-            redrawCanvas();
-            updatePreviewTables();
-        });
+        deleteBtn.addEventListener('click', deleteSelectedItem);
         propertiesContent.appendChild(deleteBtn);
+    }
+
+    function deleteSelectedItem() {
+        if (!state.selectedItem) return;
+
+        if (state.selectedItem instanceof CanvasObject) {
+            state.objects = state.objects.filter(obj => obj.id !== state.selectedItem.id);
+            state.cables = state.cables.filter(c => c.startObj.id !== state.selectedItem.id && c.endObj.id !== state.selectedItem.id);
+        } else if (state.selectedItem instanceof Cable) {
+            state.cables = state.cables.filter(c => c.id !== state.selectedItem.id);
+        }
+
+        state.selectedItem = null;
+        updatePropertiesPanel();
+        redrawCanvas();
+        updatePreviewTables();
     }
 
     function getMousePos(canvas, evt) {
@@ -350,6 +354,12 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             state.spacebarDown = true;
             canvas.style.cursor = 'grab';
+        }
+
+        // Handle deletion with Delete/Backspace keys
+        if ((e.code === 'Delete' || e.code === 'Backspace') && state.selectedItem) {
+            e.preventDefault();
+            deleteSelectedItem();
         }
     });
 
