@@ -8,25 +8,42 @@
 </head>
 <body>
     <h1>Canvas Editor</h1>
-    <div class="toolbar">
-        <label for="objectCategory">Add:</label>
-        <select id="objectCategory">
-            <option value="panel">Panel</option>
-            <option value="junction_box">Junction Box</option>
-            <option value="lamp">Lampu</option>
-            <option value="switch">Sakelar</option>
-            <option value="circuit_breaker">Circuit Breaker</option>
-        </select>
-        <button id="addObjectBtn">Add Object</button>
-    </div>
-    <div class="main-container">
-        <div class="properties-panel">
-            <h2>Properties</h2>
-            <div id="properties-content">
-                <p>Select an item to see its properties.</p>
+    <div class="app-container">
+        <div class="left-sidebar">
+            <div class="add-object-panel">
+                <h2>Add Object</h2>
+                <div class="object-icon" draggable="true" data-category="panel">Panel</div>
+                <div class="object-icon" draggable="true" data-category="junction_box">Junction Box</div>
+                <div class="object-icon" draggable="true" data-category="lamp">Lamp</div>
+                <div class="object-icon" draggable="true" data-category="switch">Switch</div>
+                <div class="object-icon" draggable="true" data-category="circuit_breaker">Circuit Breaker</div>
+            </div>
+            <div class="properties-panel">
+                <h2>Properties</h2>
+                <div id="properties-content">
+                    <p>Select an item to see its properties.</p>
+                </div>
             </div>
         </div>
-        <canvas id="canvas" width="800" height="600"></canvas>
+        <div class="main-content">
+            <canvas id="canvas" width="800" height="600"></canvas>
+            <div class="preview-panel">
+                <div class="preview-controls">
+                    <button id="showObjectsBtn">Show Objects</button>
+                    <button id="showCablesBtn">Show Cables</button>
+                    <button id="downloadObjectsBtn">Download Objects (CSV)</button>
+                    <button id="downloadCablesBtn">Download Cables (CSV)</button>
+                </div>
+                <div class="table-container">
+                    <div class="table-wrapper" id="objects-table-wrapper">
+                        <div id="objects-table-content"></div>
+                    </div>
+                    <div class="table-wrapper" id="cables-table-wrapper">
+                        <div id="cables-table-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
