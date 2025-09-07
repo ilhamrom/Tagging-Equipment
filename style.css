@@ -1,3 +1,14 @@
+:root {
+    --bg-color: #1a1a1a;
+    --surface-color: #2c2c2c;
+    --primary-color: #4f46e5;
+    --text-color: #f5f5f5;
+    --text-secondary-color: #a3a3a3;
+    --border-color: #404040;
+    --hover-color: #363636;
+    --font-main: 'Inter', sans-serif;
+}
+
 /* Basic Reset and Box Sizing */
 * {
     box-sizing: border-box;
@@ -6,8 +17,9 @@
 html, body {
     height: 100%;
     margin: 0;
-    font-family: sans-serif;
-    background-color: #f0f0f0;
+    font-family: var(--font-main);
+    background-color: var(--bg-color);
+    color: var(--text-color);
     overflow: hidden;
 }
 
@@ -18,16 +30,19 @@ body {
 }
 
 h1 {
-    margin: 10px;
-    text-align: center;
+    margin: 15px 20px;
+    font-size: 1.5em;
+    font-weight: 600;
+    text-align: left;
     flex-shrink: 0;
+    color: var(--text-color);
 }
 
 .app-container {
     display: flex;
     flex-direction: row;
-    gap: 10px;
-    padding: 0 10px 10px 10px;
+    gap: 1rem;
+    padding: 0 1rem 1rem 1rem;
     flex-grow: 1;
     min-height: 0;
 }
@@ -36,116 +51,171 @@ h1 {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 1rem;
     min-width: 0;
 }
 
 .left-sidebar {
-    width: 250px;
+    width: 280px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 1rem;
 }
 
-.add-object-panel, .properties-panel {
-    padding: 10px;
-    border: 1px solid #ccc;
-    background-color: #fff;
+.add-object-panel, .properties-panel, .preview-panel {
+    padding: 1rem;
+    background-color: var(--surface-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
 }
 
 .add-object-panel h2, .properties-panel h2 {
     margin-top: 0;
     font-size: 1.1em;
-    margin-bottom: 10px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
 }
 
 .add-object-panel {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 0.5rem;
 }
 
 .object-icon {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
     text-align: center;
     cursor: grab;
-    background-color: #f9f9f9;
+    background-color: var(--bg-color);
     font-size: 0.9em;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
 .object-icon:hover {
-    background-color: #e9e9e9;
-    border-color: #bbb;
+    background-color: var(--hover-color);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
 }
 
 .properties-panel {
-    flex-grow: 1; /* Allow it to grow and fill space if add-object is small */
+    flex-grow: 1;
     overflow-y: auto;
 }
 
 canvas {
     flex-grow: 1;
-    border: 1px solid #ccc;
-    background-color: #fff;
+    border: 1px solid var(--border-color);
+    background-color: #212121; /* Slightly different for contrast */
     cursor: crosshair;
-    min-height: 0; /* Crucial for flex-grow to work correctly */
+    min-height: 0;
+    border-radius: 8px;
 }
 
-/* Styles for the new Properties Panel Editor */
+/* Styles for the Properties Panel Editor */
 .properties-panel .tag-part-editor {
     display: flex;
     flex-direction: column;
-    margin-bottom: 15px;
+    margin-bottom: 1rem;
 }
 
 .properties-panel label {
-    margin-bottom: 5px;
+    margin-bottom: 0.5rem;
     font-size: 0.9em;
-    color: #333;
+    font-weight: 500;
+    color: var(--text-secondary-color);
 }
 
 .properties-panel input[type="text"],
 .properties-panel select {
     width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-main);
+    font-size: 0.9em;
+    transition: border-color 0.2s ease;
 }
 
 .properties-panel select {
-    margin-bottom: 5px;
+    margin-bottom: 0.5rem;
+}
+
+.properties-panel input[type="text"]:focus,
+.properties-panel select:focus {
+    outline: none;
+    border-color: var(--primary-color);
 }
 
 .properties-panel input[type="text"]:disabled {
-    background-color: #f0f0f0;
+    background-color: #222;
     cursor: not-allowed;
+    color: var(--text-secondary-color);
+}
+
+#deleteItem {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+#deleteItem:hover {
+    background-color: #dc2626;
 }
 
 /* Preview Panel Styles */
 .preview-panel {
     flex-shrink: 0;
-    height: 250px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
-    gap: 10px;
+    height: 300px;
+    gap: 1rem;
 }
 
 .preview-controls {
     flex-shrink: 0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.preview-controls button {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--text-secondary-color);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.preview-controls button.active,
+.preview-controls button:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
 }
 
 .table-container {
     flex-grow: 1;
     min-height: 0;
     overflow: auto;
-    border: 1px solid #ddd;
-    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-color);
 }
 
 .table-wrapper table {
@@ -154,14 +224,43 @@ canvas {
 }
 
 .table-wrapper th, .table-wrapper td {
-    border: 1px solid #ddd;
-    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px;
     text-align: left;
     font-size: 0.9em;
 }
 
+.table-wrapper td {
+    color: var(--text-secondary-color);
+}
+
 .table-wrapper th {
-    background-color: #f2f2f2;
+    background-color: var(--hover-color);
     position: sticky;
     top: 0;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.table-wrapper tr:last-child td {
+    border-bottom: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #666;
 }
