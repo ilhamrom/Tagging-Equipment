@@ -8,42 +8,82 @@ html, body {
     margin: 0;
     font-family: sans-serif;
     background-color: #f0f0f0;
-    display: flex; /* Use flexbox on body */
-    flex-direction: column; /* Stack children vertically */
-    overflow: hidden; /* Prevent body from scrolling */
+    overflow: hidden;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
 }
 
 h1 {
     margin: 10px;
     text-align: center;
-    flex-shrink: 0; /* Prevent h1 from shrinking */
+    flex-shrink: 0;
 }
 
-.toolbar {
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-shrink: 0; /* Prevent toolbar from shrinking */
-    padding: 0 10px;
-}
-
-.main-container {
+.app-container {
     display: flex;
     flex-direction: row;
     gap: 10px;
-    padding: 0 10px 10px 10px; /* Add padding here instead of body */
-    flex-grow: 1; /* Make this container grow to fill available space */
-    min-height: 0; /* Important for flex-grow in a flex column */
+    padding: 0 10px 10px 10px;
+    flex-grow: 1;
+    min-height: 0;
 }
 
-.properties-panel {
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.left-sidebar {
     width: 250px;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.add-object-panel, .properties-panel {
     padding: 10px;
     border: 1px solid #ccc;
     background-color: #fff;
-    overflow-y: auto; /* Allow properties panel to scroll if content is too long */
+}
+
+.add-object-panel h2, .properties-panel h2 {
+    margin-top: 0;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+}
+
+.add-object-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.object-icon {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    cursor: grab;
+    background-color: #f9f9f9;
+    font-size: 0.9em;
+}
+
+.object-icon:hover {
+    background-color: #e9e9e9;
+    border-color: #bbb;
+}
+
+.properties-panel {
+    flex-grow: 1; /* Allow it to grow and fill space if add-object is small */
+    overflow-y: auto;
 }
 
 canvas {
@@ -51,6 +91,77 @@ canvas {
     border: 1px solid #ccc;
     background-color: #fff;
     cursor: crosshair;
-    width: 100%; /* Take up all horizontal space in its container */
-    height: 100%; /* Take up all vertical space in its container */
+    min-height: 0; /* Crucial for flex-grow to work correctly */
+}
+
+/* Styles for the new Properties Panel Editor */
+.properties-panel .tag-part-editor {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.properties-panel label {
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: #333;
+}
+
+.properties-panel input[type="text"],
+.properties-panel select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.properties-panel select {
+    margin-bottom: 5px;
+}
+
+.properties-panel input[type="text"]:disabled {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+
+/* Preview Panel Styles */
+.preview-panel {
+    flex-shrink: 0;
+    height: 250px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+}
+
+.preview-controls {
+    flex-shrink: 0;
+}
+
+.table-container {
+    flex-grow: 1;
+    min-height: 0;
+    overflow: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+.table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-wrapper th, .table-wrapper td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    font-size: 0.9em;
+}
+
+.table-wrapper th {
+    background-color: #f2f2f2;
+    position: sticky;
+    top: 0;
 }

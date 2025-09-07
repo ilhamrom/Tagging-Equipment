@@ -1,9 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const objectCategorySelect = document.getElementById('objectCategory');
-    const addObjectBtn = document.getElementById('addObjectBtn');
     const propertiesContent = document.getElementById('properties-content');
+    const objectIcons = document.querySelectorAll('.object-icon');
 
     let objects = [];
     let cables = [];
@@ -27,13 +26,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let panStart = { x: 0, y: 0 };
     let spacebarDown = false;
 
+    let sequenceCounter = 1;
+
     class CanvasObject {
-        constructor(x, y, category, tag = 'Untitled Object') {
+        constructor(x, y, category) {
             this.id = Date.now();
             this.x = x;
             this.y = y;
-            this.tag = tag;
             this.category = category;
+            this.tag = {
+                parts: [category.toUpperCase(), String(sequenceCounter++).padStart(2, '0'), ''],
+                modes: ['manual', 'sequence', 'manual']
+            };
             switch (this.category) {
                 case 'panel': this.width = 80; this.height = 120; break;
                 case 'junction_box': this.width = 40; this.height = 40; break;
@@ -64,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             context.fillStyle = 'black';
             context.font = `${12 / zoom}px sans-serif`;
-            context.fillText(this.tag, centerX, this.y + this.height + (10 / zoom));
+            context.fillText(this.getFullTag(), centerX, this.y + this.height + (10 / zoom));
             this.nodes.forEach((node, index) => {
                 context.beginPath();
                 context.arc(this.x + node.x, this.y + node.y, 5 / zoom, 0, 2 * Math.PI);
@@ -89,16 +93,25 @@ document.addEventListener('DOMContentLoaded', () => {
         isClicked(mouseX, mouseY) {
             return mouseX >= this.x && mouseX <= this.x + this.width && mouseY >= this.y && mouseY <= this.y + this.height;
         }
+        getFullTag() {
+            return this.tag.parts.filter(p => p && String(p).trim() !== '').join('').toUpperCase();
+        }
     }
 
     class Cable {
-        constructor(startObj, startNodeIndex, endObj, endNodeIndex, tag = 'Untitled Cable') {
+        constructor(startObj, startNodeIndex, endObj, endNodeIndex) {
             this.id = Date.now();
             this.startObj = startObj;
             this.startNodeIndex = startNodeIndex;
             this.endObj = endObj;
             this.endNodeIndex = endNodeIndex;
-            this.tag = tag;
+            this.tag = {
+                parts: ['CABLE', String(sequenceCounter++).padStart(2, '0'), ''],
+                modes: ['manual', 'sequence', 'manual']
+            };
+        }
+        getFullTag() {
+            return this.tag.parts.filter(p => p && String(p).trim() !== '').join('').toUpperCase();
         }
         getEndPoints() {
             const startNode = this.startObj.nodes[this.startNodeIndex];
@@ -133,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
             context.font = `${12 / zoom}px sans-serif`;
             context.textAlign = 'center';
             context.textBaseline = 'bottom';
-            const textMetrics = context.measureText(this.tag);
+            const textMetrics = context.measureText(this.getFullTag());
             const textWidth = textMetrics.width;
             const textHeight = 12 / zoom;
             context.fillStyle = 'white';
@@ -144,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             context.lineWidth = 1 / zoom;
             context.strokeRect(bgX, bgY, textWidth + (8 / zoom), textHeight + (8 / zoom));
             context.fillStyle = 'red';
-            context.fillText(this.tag, midX, midY + textOffset);
+            context.fillText(this.getFullTag(), midX, midY + textOffset);
             context.restore();
         }
         getHandleAt(pos) {
@@ -224,27 +237,80 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updatePropertiesPanel() {
-        if (selectedItem) {
-            propertiesContent.innerHTML = `<div><label for="tag-input">Tag:</label><input type="text" id="tag-input" value="${selectedItem.tag}"></div><button id="deleteItem" style="margin-top: 10px;">Delete Item</button>`;
-            document.getElementById('tag-input').addEventListener('input', (e) => {
-                selectedItem.tag = e.target.value;
-                redrawCanvas();
-            });
-            document.getElementById('deleteItem').addEventListener('click', () => {
-                if (!selectedItem) return;
-                if (selectedItem instanceof CanvasObject) {
-                    objects = objects.filter(obj => obj.id !== selectedItem.id);
-                    cables = cables.filter(c => c.startObj.id !== selectedItem.id && c.endObj.id !== selectedItem.id);
-                } else if (selectedItem instanceof Cable) {
-                    cables = cables.filter(c => c.id !== selectedItem.id);
-                }
-                selectedItem = null;
-                updatePropertiesPanel();
-                redrawCanvas();
-            });
-        } else {
+        propertiesContent.innerHTML = ''; // Clear previous content
+
+        if (!selectedItem) {
             propertiesContent.innerHTML = '<p>Select an item to see its properties.</p>';
+            return;
         }
+
+        // Unified Tag Editor for both CanvasObject and Cable
+        if (selectedItem.tag && typeof selectedItem.tag === 'object' && Array.isArray(selectedItem.tag.parts)) {
+            const tagEditorWrapper = document.createElement('div');
+            tagEditorWrapper.className = 'tag-editor';
+
+            for (let i = 0; i < 3; i++) {
+                const partWrapper = document.createElement('div');
+                partWrapper.className = 'tag-part-editor';
+
+                const label = document.createElement('label');
+                label.textContent = `Tag Part ${i + 1}`;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = selectedItem.tag.parts[i];
+                input.disabled = selectedItem.tag.modes[i] === 'sequence';
+                input.addEventListener('input', (e) => {
+                    selectedItem.tag.parts[i] = e.target.value.toUpperCase();
+                    redrawCanvas();
+                    updatePreviewTables();
+                });
+
+                const select = document.createElement('select');
+                select.innerHTML = `<option value="manual">Manual</option><option value="sequence">Sequence</option>`;
+                select.value = selectedItem.tag.modes[i];
+                select.addEventListener('change', (e) => {
+                    const newMode = e.target.value;
+                    selectedItem.tag.modes[i] = newMode;
+                    if (newMode === 'sequence') {
+                        const seqValue = String(sequenceCounter++).padStart(2, '0');
+                        selectedItem.tag.parts[i] = seqValue;
+                        input.value = seqValue;
+                        input.disabled = true;
+                    } else {
+                        input.disabled = false;
+                    }
+                    redrawCanvas();
+                    updatePreviewTables();
+                });
+
+                partWrapper.appendChild(label);
+                partWrapper.appendChild(select);
+                partWrapper.appendChild(input);
+                tagEditorWrapper.appendChild(partWrapper);
+            }
+            propertiesContent.appendChild(tagEditorWrapper);
+        }
+
+        // Add delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.id = 'deleteItem';
+        deleteBtn.textContent = 'Delete Item';
+        deleteBtn.style.marginTop = '10px';
+        deleteBtn.addEventListener('click', () => {
+            if (!selectedItem) return;
+            if (selectedItem instanceof CanvasObject) {
+                objects = objects.filter(obj => obj.id !== selectedItem.id);
+                cables = cables.filter(c => c.startObj.id !== selectedItem.id && c.endObj.id !== selectedItem.id);
+            } else if (selectedItem instanceof Cable) {
+                cables = cables.filter(c => c.id !== selectedItem.id);
+            }
+            selectedItem = null;
+            updatePropertiesPanel();
+            redrawCanvas();
+            updatePreviewTables();
+        });
+        propertiesContent.appendChild(deleteBtn);
     }
 
     function getMousePos(canvas, evt) {
@@ -259,12 +325,32 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    addObjectBtn.addEventListener('click', () => {
-        const category = objectCategorySelect.value;
-        const worldX = (canvas.width / 2 - panX) / zoom;
-        const worldY = (canvas.height / 2 - panY) / zoom;
-        objects.push(new CanvasObject(worldX, worldY, category));
+    objectIcons.forEach(icon => {
+        icon.addEventListener('click', () => {
+            const category = icon.dataset.category;
+            const worldX = (canvas.width / 2 - panX) / zoom;
+            const worldY = (canvas.height / 2 - panY) / zoom;
+            objects.push(new CanvasObject(worldX, worldY, category));
+            redrawCanvas();
+            updatePreviewTables();
+        });
+
+        icon.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', icon.dataset.category);
+        });
+    });
+
+    canvas.addEventListener('dragover', (e) => {
+        e.preventDefault(); // Allow drop
+    });
+
+    canvas.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const category = e.dataTransfer.getData('text/plain');
+        const pos = getMousePos(canvas, e);
+        objects.push(new CanvasObject(pos.x, pos.y, category));
         redrawCanvas();
+        updatePreviewTables();
     });
 
     canvas.addEventListener('mousedown', (e) => {
@@ -385,6 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isDragging = false;
         hoveredNodeInfo = null;
         redrawCanvas();
+        updatePreviewTables();
     });
 
     canvas.addEventListener('wheel', (e) => {
@@ -434,8 +521,106 @@ document.addEventListener('DOMContentLoaded', () => {
         redrawCanvas();
     }
 
+    function updatePreviewTables() {
+        const objectsTableContent = document.getElementById('objects-table-content');
+        const cablesTableContent = document.getElementById('cables-table-content');
+
+        // Clear existing tables
+        objectsTableContent.innerHTML = '';
+        cablesTableContent.innerHTML = '';
+
+        // Create Objects Table
+        let objectsTable = '<table><thead><tr><th>ID</th><th>Category</th><th>Tag Part 1</th><th>Tag Part 2</th><th>Tag Part 3</th></tr></thead><tbody>';
+        objects.forEach(obj => {
+            objectsTable += `<tr><td>${obj.id}</td><td>${obj.category}</td><td>${obj.tag.parts[0]}</td><td>${obj.tag.parts[1]}</td><td>${obj.tag.parts[2]}</td></tr>`;
+        });
+        objectsTable += '</tbody></table>';
+        objectsTableContent.innerHTML = objectsTable;
+
+        // Create Cables Table
+        let cablesTable = '<table><thead><tr><th>Cable Tag</th><th>From Object Tag</th><th>From Object Category</th><th>To Object Tag</th><th>To Object Category</th></tr></thead><tbody>';
+        cables.forEach(cable => {
+            cablesTable += `<tr><td>${cable.getFullTag()}</td><td>${cable.startObj.getFullTag()}</td><td>${cable.startObj.category}</td><td>${cable.endObj.getFullTag()}</td><td>${cable.endObj.category}</td></tr>`;
+        });
+        cablesTable += '</tbody></table>';
+        cablesTableContent.innerHTML = cablesTable;
+    }
+
     window.addEventListener('resize', resizeCanvas);
     
+    // Table Toggling Logic
+    const showObjectsBtn = document.getElementById('showObjectsBtn');
+    const showCablesBtn = document.getElementById('showCablesBtn');
+    const objectsTableWrapper = document.getElementById('objects-table-wrapper');
+    const cablesTableWrapper = document.getElementById('cables-table-wrapper');
+
+    // Default view
+    objectsTableWrapper.style.display = 'none';
+    cablesTableWrapper.style.display = 'block';
+
+    showObjectsBtn.addEventListener('click', () => {
+        objectsTableWrapper.style.display = 'block';
+        cablesTableWrapper.style.display = 'none';
+    });
+
+    showCablesBtn.addEventListener('click', () => {
+        objectsTableWrapper.style.display = 'none';
+        cablesTableWrapper.style.display = 'block';
+    });
+
     // Initial resize and draw
     resizeCanvas();
+    updatePreviewTables();
+
+    // Download Logic
+    const downloadObjectsBtn = document.getElementById('downloadObjectsBtn');
+    const downloadCablesBtn = document.getElementById('downloadCablesBtn');
+
+    function escapeCsvCell(cell) {
+        if (cell === null || cell === undefined) {
+            return '';
+        }
+        const str = String(cell);
+        // If the string contains a comma, double quote, or newline, enclose it in double quotes.
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            // Also, double up any existing double quotes.
+            return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+    }
+
+    function downloadCSV(filename, rows) {
+        const csvContent = rows.map(row => row.map(escapeCsvCell).join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    downloadObjectsBtn.addEventListener('click', () => {
+        const rows = [['ID', 'Category', 'Tag Part 1', 'Tag Part 2', 'Tag Part 3']];
+        objects.forEach(obj => {
+            rows.push([obj.id, obj.category, obj.tag.parts[0], obj.tag.parts[1], obj.tag.parts[2]]);
+        });
+        downloadCSV('objects.csv', rows);
+    });
+
+    downloadCablesBtn.addEventListener('click', () => {
+        const rows = [['Cable Tag', 'From Object Tag', 'From Object Category', 'To Object Tag', 'To Object Category']];
+        cables.forEach(cable => {
+            rows.push([
+                cable.getFullTag(),
+                cable.startObj.getFullTag(),
+                cable.startObj.category,
+                cable.endObj.getFullTag(),
+                cable.endObj.category
+            ]);
+        });
+        downloadCSV('cables.csv', rows);
+    });
 });
